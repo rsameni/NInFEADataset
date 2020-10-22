@@ -22,23 +22,23 @@ function [varargout]=mat2wfdb(varargin)
 %          Three input formats:
 %            - String delimited by forward slashes (e.g. 'V/mV/mmHg'), with
 %            M-1 slash characters
-%            - Single string (e.g. 'V'), in which case all signals will 
+%            - Single string (e.g. 'V'), in which case all signals will
 %            have the same physical units.
-%            - Cell array of strings, where the total units entered has to equal M 
+%            - Cell array of strings, where the total units entered has to equal M
 %            (number of channels).
 % info    -(Optional)  String that will be added to the comment section of the header file.
 %           For multi-lined comments, use a cell array of strings. Each
 %           cell will be output on a new line. Note that comments in the
 %           header file are automatically prefixed with a pound symbol (#)
-% gain    -(Required for digital only) Scalar or Mx1 array of floats indicating the difference in sample values 
-%           that would be observed if a step of one physical unit occurred in the original 
+% gain    -(Required for digital only) Scalar or Mx1 array of floats indicating the difference in sample values
+%           that would be observed if a step of one physical unit occurred in the original
 %           analog signal. If the 'isdigital' field is 1, this field is mandatory. Otherwise,
-%           this field is ignored if present. 
+%           this field is ignored if present.
 % baseline -(Required for digital only) Mx1 array of integers that specifies the sample value for each channel
-%           corresponding to 0 physical units. Not to be confused with 'ADC zero' which 
+%           corresponding to 0 physical units. Not to be confused with 'ADC zero' which
 %           is currently always taken and written as 0 in this function. If
 %           the 'isdigital' field is 1, this field is mandatory. Otherwise,
-%           this field is ignored if present. 
+%           this field is ignored if present.
 % sg_name -(Optional) Cell array of strings describing signal names.
 %
 % isquant   -(Optional) Logical value (default=0). Use this option if the
@@ -47,14 +47,14 @@ function [varargout]=mat2wfdb(varargin)
 %           point conversion. This field is only used for input physical
 %           signals. If 'isdigital' is set to 1, this field is ignored.
 %
-% isdigital -(Optional) Logical value (default=0). Specifies whether the input signal is 
-%            digital or physical (default). If it is digital, the signal values will be 
-%            directly written to the file without scaling. If the signal is physical, 
+% isdigital -(Optional) Logical value (default=0). Specifies whether the input signal is
+%            digital or physical (default). If it is digital, the signal values will be
+%            directly written to the file without scaling. If the signal is physical,
 %            the optimal gain and baseline will be calculated and used to digitize the signal
 %            to write the WFDB file. This flag also decides the allowed
 %            input combinations of the 'gain' and 'baseline' fields.
 %            Digital signals must have both, and physical signals must have
-%            neither (as the ideal values will be automatically calculated). 
+%            neither (as the ideal values will be automatically calculated).
 %
 % Ouput Parameter:
 %
@@ -148,19 +148,19 @@ disp(isdigital)
 % Check valid gain and baseline combinations depending on whether the input is digital or physical.
 if isdigital % digital input signal
     if (isempty(gain) || isempty(baseline))
-        error('Input digital signals are directly written to files without scaling. Must also input gain and baseline for correct interpretation of written file.');   
+        error('Input digital signals are directly written to files without scaling. Must also input gain and baseline for correct interpretation of written file.');
     end
-    if (~isempty(find(baseline>2147483647))||~isempty(find(baseline<-2147483648))) % baseline stored as int in wfdb library. 
+    if (~isempty(find(baseline>2147483647))||~isempty(find(baseline<-2147483648))) % baseline stored as int in wfdb library.
         error('Baseline field must lie between 2^-31 and 2^31-1 for this WFDB version'); % Prevent bit overflow
     end
 else % physical input signal
     if ( ~isempty(gain) || ~isempty(baseline)) % User inputs gain or baseline to map the physical to digital values.
-        % Sorry, we cannot trust that they did it correctly... 
+        % Sorry, we cannot trust that they did it correctly...
         warning('Input gain and baseline fields ignored for physical input signal. This function automatically calculates and applies the ideal values');
     end
 end
-    
-switch bit_res % Write formats. 
+
+switch bit_res % Write formats.
     case 8
         fmt='80';
     case 16
@@ -173,7 +173,7 @@ end
 
 if isempty(adu) % default unit: 'mV'
     adu=repmat({'mV'},[M 1]);
-elseif iscell(adu) 
+elseif iscell(adu)
     % adu directly input as a cell array of strings
 elseif ischar(adu)
     if ~isempty(strfind(adu,'/'))
@@ -271,7 +271,7 @@ end
 
 if(~count)
     fclose(fid);
-    error(['Could not data write to file: ' fname])  
+    error(['Could not data write to file: ' fname])
 end
 
 fprintf(['Generated *.dat file: ' fname '\n'])
@@ -317,8 +317,8 @@ max_x=max(x(~isnan(x)));
 nan_ind=isnan(x);
 rg=max_x-min_x;
 
-if(isdigital) 
-    % Digital input signal. Do not scale or shift the signal. The gain/baseline will only 
+if(isdigital)
+    % Digital input signal. Do not scale or shift the signal. The gain/baseline will only
     % be used to write the header file to interpret the output wfdb record.
     if ((min_x < -2^(bit_res-1)+1) || (max_x > (2^(bit_res-1)-1 )))
         error(['Digital input signal exceeds allowed range of specified output format: {' num2str(-2^(bit_res-1)+1) ' < x < ' num2str(2^(bit_res-1)-1) '}']);
@@ -334,17 +334,17 @@ else
     % Make sure baseline doesn't go beyond 4 byte integer range
     
     if rg==0 % Flatline signal. Manually set adc_gain or it will be infinite.
-          baseline=-(2^(bit_res-1))+1; % Set baseline to minimum value of bit res
-          if x(1)==0
-            adc_gain=1; % Arbitrary gain=1 for all 0 input signal. All values stored as baseline. 
-          else
-            adc_gain=-baseline/x(1); % Set gain as inverse to store all values as exactly 0.  
-          end
-          
+        baseline=-(2^(bit_res-1))+1; % Set baseline to minimum value of bit res
+        if x(1)==0
+            adc_gain=1; % Arbitrary gain=1 for all 0 input signal. All values stored as baseline.
+        else
+            adc_gain=-baseline/x(1); % Set gain as inverse to store all values as exactly 0.
+        end
+        
     else % Non flatline signal: adc_gain = (range of encoding / range of Data) -- remember 1 quant level is for storing NaN
-        % Constraint - baseline must be stored as a 4 byte integer for the WFDB library. 
+        % Constraint - baseline must be stored as a 4 byte integer for the WFDB library.
         if ((min_x>0) && (bit_res==32)) % All values are +ve, map with baseline = -2^31+1
-            adc_gain=((2^32)-2)/max_x; 
+            adc_gain=((2^32)-2)/max_x;
             baseline=-2147483647;
             if isquant==0 % Only display warning message if not recalculating later
                 disp('Due to baseline constraints, output precision may be slightly less than 32 bits for the positive channel.');
@@ -355,13 +355,13 @@ else
             if isquant==0 % Only display warning message if not recalculating later
                 disp('Due to baseline constraints, output precision may be slightly less than 32 bits for the negative channel.');
             end
-        else % Signal has both +ve and -ve values or fmt is not 32. Use full range of bits. 
+        else % Signal has both +ve and -ve values or fmt is not 32. Use full range of bits.
             adc_gain=((2^bit_res)-2)/rg;
             baseline=round(-(2^(bit_res-1))+1-min_x*adc_gain);
             
         end
         if(isquant)
-            % The (non flatline) input signal was already quantitized. Remove round-off error 
+            % The (non flatline) input signal was already quantitized. Remove round-off error
             % by setting the original values to integers prior to fixed point conversion
             
             xvalues=sort(unique(x(~isnan(x)))); % All the values of x
@@ -372,13 +372,13 @@ else
             % the full increment range is less than the 2^N-2 increments able to be encoded
             % by the chosen bit resolution. The incmin estimate will always
             % be equal to or larger than the true incmin, so it won't
-            % wrongly trigger errors in this validation step. 
+            % wrongly trigger errors in this validation step.
             
             if (quantlevels>2^bit_res-2)
                 if bit_res==32
                     disp(['The input signal has more quantization levels than 32 bits -1. ' ...
                         'Cannot directly map all input values to integers. Up to 1 bit of roundoff error may occur. Continuing...']);
-                    calcquant=0; % Skip the integer matching and keep the old baseline/gain calculated. 
+                    calcquant=0; % Skip the integer matching and keep the old baseline/gain calculated.
                 else
                     error(['The input signal has more quantization levels than the chosen bit resolution. ' ...
                         'Please choose a higher resolution or remove the isquant option to allow up to 1 bit of roundoff error']);
@@ -391,23 +391,23 @@ else
             if calcquant
                 if ((min_x>0) && (bit_res==32)) % 32 bit +ve quant mapping
                     adc_gain=1/incmin;
-                    baseline=round(2147483647-adc_gain*max_x); % map max_x to 2^31-1. 
-                    if (baseline<-2147483647) % Check if baseline goes below -2^31-1. If so, no quant. Recalculate gain and base. 
-                        adc_gain=((2^32)-2)/max_x; 
+                    baseline=round(2147483647-adc_gain*max_x); % map max_x to 2^31-1.
+                    if (baseline<-2147483647) % Check if baseline goes below -2^31-1. If so, no quant. Recalculate gain and base.
+                        adc_gain=((2^32)-2)/max_x;
                         baseline=-2147483647;
                         disp('Due to baseline constraints, the channel will not be quantized. Output precision may be less than 32 bits for the positive channel.');
                     end
                 elseif((max_x<0) && (bit_res==32)) % 32 bit -ve quant mapping
                     adc_gain=1/incmin;
-                    baseline=round(-2147483647-adc_gain*min_x); % map min_x to -2^31+1. 
-                    if (baseline>2147483647) % Check if baseline goes above 2^31-1. If so, no quant. Recalculate gain and base. 
-                        adc_gain=((2^32)-2)/abs(min_x); 
+                    baseline=round(-2147483647-adc_gain*min_x); % map min_x to -2^31+1.
+                    if (baseline>2147483647) % Check if baseline goes above 2^31-1. If so, no quant. Recalculate gain and base.
+                        adc_gain=((2^32)-2)/abs(min_x);
                         baseline=2147483647;
                         disp('Due to baseline constraints, channel will not be quantized. Output precision may be less than 32 bits for the negative channel.');
                     end
                 else % Signal has both +ve and -ve values or fmt is not 32. Can use full range of bits.
                     adc_gain=1/incmin; % 1 digital unit corresponds to the smallest physical increment.
-                    baseline=round(-(2^(bit_res-1))+1-min_x*adc_gain); % xmin still maps to ymin. xmax will not go beyond y limit, baseline should not go beyond 32 bit limits.  
+                    baseline=round(-(2^(bit_res-1))+1-min_x*adc_gain); % xmin still maps to ymin. xmax will not go beyond y limit, baseline should not go beyond 32 bit limits.
                 end
             end
         end
@@ -416,7 +416,7 @@ else
         % with very high magnitude.
         if (baseline>2147483647) % Signal is all negative with large magnitude.
             warning('Large offset input channel entered. Output precision may be less than specified format for the negative channel.');
-            baseline=2147483647; % Baseline is max int value, min_x maps to min bitres value. 
+            baseline=2147483647; % Baseline is max int value, min_x maps to min bitres value.
             adc_gain=(-(2^(bit_res-1))+1-baseline)/min_x;
         elseif (baseline<-2147483647) % Signal is all positive with large magnitude.
             warning('Large offset input channel entered. Output precision may be less than specified format for the positive channel.');
@@ -424,17 +424,17 @@ else
             adc_gain=(2^(bit_res-1)-1-baseline)/max_x;
         end
     end
-
+    
     y=x*adc_gain+baseline;
     
-end % signal is in digital range. adc_gain and baseline have been calculated. 
+end % signal is in digital range. adc_gain and baseline have been calculated.
 
-% Convert signals to appropriate integer type, and shift any WFDB NaN int values to 
+% Convert signals to appropriate integer type, and shift any WFDB NaN int values to
 % a higher value so that they will not be read as NaN's by WFDB
-switch bit_res % WFDB will interpret the smallest value as nan. 
+switch bit_res % WFDB will interpret the smallest value as nan.
     case 8
         WFDBNAN=-128;
-        y=int8(y); 
+        y=int8(y);
     case 16
         WFDBNAN=-32768;
         y=int16(y);
@@ -442,7 +442,7 @@ switch bit_res % WFDB will interpret the smallest value as nan.
         WFDBNAN=-2147483648;
         y=int32(y);
 end
-iswfdbnan=find(y==WFDBNAN); 
+iswfdbnan=find(y==WFDBNAN);
 if(~isempty(iswfdbnan))
     y(iswfdbnan)=WFDBNAN+1;
 end
@@ -468,12 +468,12 @@ else
 end
 
 % Note that checksum must be calculated on actual digital samples for format 80,
-% not the shifted ones. Therefore we only convert to real format now. 
+% not the shifted ones. Therefore we only convert to real format now.
 if bit_res==8
-    y=uint8(int16(y)+128); % Convert into unsigned for writing byte offset format. 
+    y=uint8(int16(y)+128); % Convert into unsigned for writing byte offset format.
 end
 
-% Signal is ready to be written to dat file. 
+% Signal is ready to be written to dat file.
 
 end
 
