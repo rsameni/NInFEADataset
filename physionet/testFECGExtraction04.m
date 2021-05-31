@@ -1,16 +1,19 @@
 % Fetal and maternal ECG extraction and heart rate calculation
+% adapted for the NInFEA Dataset (https://physionet.org/content/ninfea/1.0.0/)
+%
 % By: Reza Sameni
 % Email: reza.sameni@gmail.com
 % May 2019
 %
-% Note: Please use the most recent updates of the Open-Source
+% Note: Use the most recent updates of the Open-Source
 % Electrophysiological Toolbos (OSET) online available at: https://gitlab.com/rsameni/OSET
 
 clear;
 close all;
 clc;
 
-pth = 'D:\Users\samenir\RezaSAMENI\SourceCodes\DaniloFetalECGData';
+pth = ''; % Replace with the correct path of the .mat files
+
 D = dir([pth '\*.mat']);
 
 % algorithm parameters
@@ -32,8 +35,8 @@ wlenL = round(0.030*fs); % before R-peak
 wlenR = round(0.030*fs); % after R-peak
 
 % subject = 5; % test data index in the data folder (1...68)
-% for subject = 1 : 68,
-for subject = 38 : 68,
+% for subject = 38 : 68
+for subject = 1 : 68
     ff = 2.4; % approximate fetal heart rate in Hz
     
     % load data
@@ -68,11 +71,11 @@ for subject = 38 : 68,
     BW = Wc/Q;
     [b_notch_filter, a_notch_filter] = iirnotch(Wc, BW);
     y = zeros(size(x));
-    for i = 1:size(x, 1),
+    for i = 1:size(x, 1)
         y(i, :) = filtfilt(b_notch_filter, a_notch_filter, x(i, :));
     end
     y_abd = zeros(size(x_abd));
-    for i = 1:size(x, 1),
+    for i = 1:size(x, 1)
         y_abd(i, :) = filtfilt(b_notch_filter, a_notch_filter, x_abd(i, :));
     end
     
@@ -107,14 +110,14 @@ for subject = 38 : 68,
     % [s, A, w] = fastica (xx, 'approach', 'defl', 'displayMode', 'off', 'lastEig', 20, 'numOfIC', 10);
     
     % A two-run fetal ECG detector
-    for run = 1:2, % repeat twice to make the fetal heart rate guess more accurate
+    for run = 1:2 % repeat twice to make the fetal heart rate guess more accurate
         % ind = 1./ChannelIndex9(s, ff, fs); % Channel selection based on variance around average beat
         ind = ChannelIndex10(s, ff, fs); % Channel selection based on fixed template matched filter
         [sorted_indexes, II] = sort(ind, 1, 'ascend');
         s_sorted = s(II, :);
         fref0 = s_sorted(1, :);
         % fpeaks = PeakDetection(fref, ff/fs);
-        [fhr0 fpeaks0] = HRCalculation2(fref0, ff, fs, 1, fpeak_detection_smoothing_len, 'trmean');
+        [fhr0, fpeaks0] = HRCalculation2(fref0, ff, fs, 1, fpeak_detection_smoothing_len, 'trmean');
         %     [fhr0 fpeaks0] = HRCalculation4(fref0, ff, fs, 1, fpeak_detection_smoothing_len, 'trmean');
         I_fpeaks0 = find(fpeaks0);
         ff = fs/median(diff(I_fpeaks0));
@@ -170,7 +173,7 @@ for subject = 38 : 68,
     fHR1_med = zeros(1, length(fHR1));
     fHR1smoothed = fHR1;
     hrlen = length(fHR1);
-    for i = 1 : hrlen,
+    for i = 1 : hrlen
         index = max(i-wlen, 1) : min(i+wlen, hrlen);
         fHR1_med(i) = median(fHR1(index));
         if(abs(fHR1(i) - fHR1_med(i)) > th)

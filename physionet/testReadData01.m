@@ -1,15 +1,17 @@
 % Sample test plots
+% adapted for the NInFEA Dataset (https://physionet.org/content/ninfea/1.0.0/)
 % By: Reza Sameni
 % Email: reza.sameni@gmail.com
 % May 2019
 %
-% Note: Please use the most recent updates of the Open-Source
+% Note: Use the most recent updates of the Open-Source
 % Electrophysiological Toolbos (OSET) online available at: https://gitlab.com/rsameni/OSET
+
 clear;
 close all;
 clc;
 
-D = dir('D:\Users\samenir\RezaSAMENI\SourceCodes\DaniloFetalECGData\*.mat');
+D = dir('*.mat'); % replace with the correct data path
 
 k = 12;
 fs = 2048;

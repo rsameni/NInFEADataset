@@ -56,7 +56,8 @@ for subject = 1 : length(D)
         [xbit] = mat2wfdb(data_baseline_removed', out_fname(1 : end-4), fs, bit_res, adu, info, [], sg_name);
     elseif(write_or_verify_mode == 1)
         x = dlmread(['foo' out_fname(1 : end-4)]);
-        er = 10*log10(mean(data_baseline_removed.^2, 2)./mean((data_baseline_removed - x(:, 2:end)').^2, 2))
+        snr = 10*log10(mean(data_baseline_removed.^2, 2)./mean((data_baseline_removed - x(:, 2:end)').^2, 2));
+        disp(snr);
     end
     disp(num2str(subject));
 end

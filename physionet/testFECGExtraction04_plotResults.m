@@ -1,16 +1,17 @@
 % Test plot the fetal and maternal heart rate results
+% adapted for the NInFEA Dataset (https://physionet.org/content/ninfea/1.0.0/)
 % By: Reza Sameni
 % Email: reza.sameni@gmail.com
 % May 2019
 %
-% Note: Please use the most recent updates of the Open-Source
+% Note: Use the most recent updates of the Open-Source
 % Electrophysiological Toolbos (OSET) online available at: https://gitlab.com/rsameni/OSET
 
 clear;
 close all;
 clc;
 
-pth = 'D:\Users\samenir\RezaSAMENI\SourceCodes\DaniloFetalECGData';
+pth = ''; % Replace with the correct data path
 D = dir([pth '\*.mat']);
 
 % algorithm parameters
@@ -32,8 +33,7 @@ wlenL = round(0.030*fs); % before R-peak
 wlenR = round(0.030*fs); % after R-peak
 
 % subject = 5; % test data index in the data folder (1...68)
-for subject = 1 : 68,
-    % for subject = 38 : 68,
+for subject = 1 : 68
     ff = 2.4; % approximate fetal heart rate in Hz
     
     load([pth, '\results\results01_' D(subject).name], 'mref', 'fref0', 'fref1', 'mpeaks', 'fpeaks0', 'fpeaks1', 'fHR0', 'fHR1', 'fHR1_med', 'fHR1smoothed');
