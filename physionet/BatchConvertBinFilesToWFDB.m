@@ -4,7 +4,7 @@
 % Oct 2020
 %
 % Note: Please use the most recent updates of the Open-Source
-% Electrophysiological Toolbos (OSET) online available at: https://gitlab.com/rsameni/OSET
+% Electrophysiological Toolbox (OSET) online available at: https://gitlab.com/rsameni/OSET
 
 clear;
 close all;
