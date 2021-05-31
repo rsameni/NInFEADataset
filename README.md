@@ -1,4 +1,4 @@
-# Sample codes for the NInFEA fetal ECG dataset
+# Sample codes for processing the NInFEA fetal ECG dataset
 ## [Reza Sameni](reza.sameni@gmail.com)
 ### Department of Biomedical Informatics, Emory University, GA
 This repository contains sample codes for processing the [NInFEA (Non-Invasive Multimodal Foetal ECG-Doppler Dataset for Antenatal Cardiology Research) dataset](https://physionet.org/content/ninfea/1.0.0/). The sample codes have dependencies to the [Open-Source Electrophysiological Toolbox (OSET)](https://gitlab.com/rsameni/OSET).
